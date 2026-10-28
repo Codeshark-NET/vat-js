@@ -1,4 +1,5 @@
 import type { Country, Rules } from "../core.ts";
+import { digit } from "../digits.ts";
 
 export const russia: Country = {
   name: "Russian Federation",
@@ -22,7 +23,7 @@ function _check10DigitINN(vat: string, rules: Rules): boolean {
 
   if (vat.length === 10) {
     for (let i = 0; i < 10; i++) {
-      total += Number(vat.charAt(i)) * rules.multipliers.m_1[i];
+      total += digit(vat, i) * rules.multipliers.m_1[i];
     }
 
     total = total % 11;
@@ -31,7 +32,7 @@ function _check10DigitINN(vat: string, rules: Rules): boolean {
     }
 
     // Compare it with the last character of the VAT number. If it is the same, then it's valid
-    const expect = Number(vat.slice(9, 10));
+    const expect = digit(vat, 9);
     return total === expect;
   }
 
@@ -44,7 +45,7 @@ function _check12DigitINN(vat: string, rules: Rules): boolean {
 
   if (vat.length === 12) {
     for (let j = 0; j < 11; j++) {
-      total1 += Number(vat.charAt(j)) * rules.multipliers.m_2[j];
+      total1 += digit(vat, j) * rules.multipliers.m_2[j];
     }
 
     total1 = total1 % 11;
@@ -54,7 +55,7 @@ function _check12DigitINN(vat: string, rules: Rules): boolean {
     }
 
     for (let k = 0; k < 11; k++) {
-      total2 += Number(vat.charAt(k)) * rules.multipliers.m_3[k];
+      total2 += digit(vat, k) * rules.multipliers.m_3[k];
     }
 
     total2 = total2 % 11;
@@ -64,8 +65,8 @@ function _check12DigitINN(vat: string, rules: Rules): boolean {
 
     // Compare the first check with the 11th character and the second check with the 12th and last
     // character of the VAT number. If they're both the same, then it's valid
-    const expect = total1 === Number(vat.slice(10, 11));
-    const expect2 = total2 === Number(vat.slice(11, 12));
+    const expect = total1 === digit(vat, 10);
+    const expect2 = total2 === digit(vat, 11);
     return expect && expect2;
   }
 

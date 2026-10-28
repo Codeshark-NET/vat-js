@@ -1,4 +1,5 @@
 import type { Country } from "../core.ts";
+import { digit } from "../digits.ts";
 
 export const romania: Country = {
   name: "Romania",
@@ -11,7 +12,7 @@ export const romania: Country = {
     const multipliers = romania.rules.multipliers.common.slice(10 - vatLength);
 
     for (let i = 0; i < vat.length - 1; i++) {
-      total += Number(vat.charAt(i)) * multipliers[i];
+      total += digit(vat, i) * multipliers[i];
     }
 
     // Establish check digits by getting modulus 11.
@@ -19,7 +20,7 @@ export const romania: Country = {
     if (total === 10) total = 0;
 
     // Compare it with the last character of the VAT number. If it's the same, then it's valid.
-    const expect = Number(vat.slice(vat.length - 1, vat.length));
+    const expect = digit(vat, vat.length - 1);
     return total === expect;
   },
   rules: {

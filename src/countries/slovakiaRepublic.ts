@@ -1,11 +1,12 @@
 import type { Country } from "../core.ts";
+import { digits } from "../digits.ts";
 
 export const slovakiaRepublic: Country = {
   name: "Slovakia Republic",
   codes: ["SK", "SVK", "703"],
   calcFn: (vat: string): boolean => {
     const expect = 0;
-    const checkDigit = Number(vat) % 11;
+    const checkDigit = digits(vat, 0) % 11;
     return checkDigit === expect;
   },
   rules: {

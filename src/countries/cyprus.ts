@@ -1,11 +1,12 @@
 import type { Country } from "../core.ts";
+import { digit, digits } from "../digits.ts";
 
 export const cyprus: Country = {
   name: "Cyprus",
   codes: ["CY", "CYP", "196"],
   calcFn: (vat: string): boolean => {
     // Not allowed to start with '12'
-    if (Number(vat.slice(0, 2)) === 12) return false;
+    if (digits(vat, 0, 2) === 12) return false;
 
     // Extract the next digit and multiply by the counter.
     let total: string | number = extractAndMultiplyByCounter(vat, 0);
@@ -27,7 +28,7 @@ export const cyprus: Country = {
 function extractAndMultiplyByCounter(vat: string, total: number): number {
   let result = total;
   for (let i = 0; i < 8; i++) {
-    let temp = Number(vat.charAt(i));
+    let temp = digit(vat, i);
     if (i % 2 === 0) {
       switch (temp) {
         case 0:

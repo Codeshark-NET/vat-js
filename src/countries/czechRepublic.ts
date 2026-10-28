@@ -1,4 +1,5 @@
 import type { Country } from "../core.ts";
+import { digit, digits } from "../digits.ts";
 
 export const czechRepublic: Country = {
   name: "Czech Republic",
@@ -39,7 +40,7 @@ function isLegalEntities(
   if (additional[0].test(vat)) {
     // Extract the next digit and multiply by the counter.
     for (let i = 0; i < 7; i++) {
-      total += Number(vat.charAt(i)) * multipliers[i];
+      total += digit(vat, i) * multipliers[i];
     }
 
     // Establish check digit.
@@ -48,7 +49,7 @@ function isLegalEntities(
     if (total === 11) total = 1;
 
     // Compare it with the last character of the VAT number. If it's the same, then it's valid.
-    const expect = Number(vat.slice(7, 8));
+    const expect = digit(vat, 7);
     return total === expect;
   }
 
@@ -57,7 +58,7 @@ function isLegalEntities(
 
 function isIndividualType1(vat: string, additional: readonly RegExp[]): boolean {
   if (additional[1].test(vat)) {
-    return Number(vat.slice(0, 2)) <= 62;
+    return digits(vat, 0, 2) <= 62;
   }
 
   return false;
@@ -74,7 +75,7 @@ function isIndividualType2(
   if (additional[2].test(vat)) {
     // Extract the next digit and multiply by the counter.
     for (let j = 0; j < 7; j++) {
-      total += Number(vat.charAt(j + 1)) * multipliers[j];
+      total += digit(vat, j + 1) * multipliers[j];
     }
 
     // Establish check digit.
@@ -89,7 +90,7 @@ function isIndividualType2(
     const pointer = a - total - 1;
 
     // Convert calculated check digit according to a lookup table
-    const expect = Number(vat.slice(8, 9));
+    const expect = digit(vat, 8);
     if (!lookup) return false;
     return lookup[pointer] === expect;
   }
@@ -100,12 +101,12 @@ function isIndividualType2(
 function isIndividualType3(vat: string, additional: readonly RegExp[]): boolean {
   if (additional[3].test(vat)) {
     const temp: number =
-      Number(vat.slice(0, 2)) +
-      Number(vat.slice(2, 4)) +
-      Number(vat.slice(4, 6)) +
-      Number(vat.slice(6, 8)) +
-      Number(vat.slice(8));
-    const expect: boolean = Number(vat) % 11 === 0;
+      digits(vat, 0, 2) +
+      digits(vat, 2, 4) +
+      digits(vat, 4, 6) +
+      digits(vat, 6, 8) +
+      digits(vat, 8);
+    const expect: boolean = digits(vat, 0) % 11 === 0;
     return !!(temp % 11 === 0 && expect);
   }
   return false;

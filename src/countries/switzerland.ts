@@ -1,4 +1,5 @@
 import type { Country } from "../core.ts";
+import { digit } from "../digits.ts";
 
 export const switzerland: Country = {
   name: "Switzerland",
@@ -6,7 +7,7 @@ export const switzerland: Country = {
   calcFn: (vat: string): boolean => {
     let total = 0;
     for (let i = 0; i < 8; i++) {
-      total += Number(vat.charAt(i)) * switzerland.rules.multipliers.common[i];
+      total += digit(vat, i) * switzerland.rules.multipliers.common[i];
     }
 
     // Establish check digit.s
@@ -15,7 +16,7 @@ export const switzerland: Country = {
     if (total === 11) total = 0;
 
     // Check to see if the check digit given is correct, If not, we have an error with the VAT number
-    const expect = Number(vat.substr(8, 1));
+    const expect = digit(vat, 8);
     return total === expect;
   },
   rules: {

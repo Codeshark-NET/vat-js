@@ -1,14 +1,15 @@
 import type { Country } from "../core.ts";
+import { digit, digits } from "../digits.ts";
 
 export const unitedKingdom: Country = {
   name: "United Kingdom",
   codes: ["GB", "GBR", "826"],
   calcFn: (vat: string): boolean => {
     // Government departments
-    if (vat.substr(0, 2) === "GD") return isGovernmentDepartment(vat);
+    if (vat.startsWith("GD")) return isGovernmentDepartment(vat);
 
     // Health authorities
-    if (vat.substr(0, 2) === "HA") return isHealthAuthorities(vat);
+    if (vat.startsWith("HA")) return isHealthAuthorities(vat);
 
     // Standard and commercial numbers
     return isStandardOrCommercialNumber(vat, unitedKingdom.rules.multipliers.common);
@@ -23,26 +24,26 @@ export const unitedKingdom: Country = {
 
 function isGovernmentDepartment(vat: string): boolean {
   const expect = 500;
-  return Number(vat.substr(2, 3)) < expect;
+  return digits(vat, 2, 5) < expect;
 }
 
 function isHealthAuthorities(vat: string): boolean {
   const expect = 499;
-  return Number(vat.substr(2, 3)) > expect;
+  return digits(vat, 2, 5) > expect;
 }
 
 function isStandardOrCommercialNumber(vat: string, multipliers: readonly number[]): boolean {
   let total = 0;
 
   // 0 VAT numbers disallowed!
-  if (Number(vat.slice(0)) === 0) return false;
+  if (digits(vat, 0) === 0) return false;
 
   // Check range is OK for modulus 97 calculation
-  const no = Number(vat.slice(0, 7));
+  const no = digits(vat, 0, 7);
 
   // Extract the next digit and multiply by the counter.
   for (let i = 0; i < 7; i++) {
-    total += Number(vat.charAt(i)) * multipliers[i];
+    total += digit(vat, i) * multipliers[i];
   }
 
   // Old numbers use a simple 97 modulus, but new numbers use an adaptation of that (less 55). Our
@@ -59,7 +60,7 @@ function isStandardOrCommercialNumber(vat: string, multipliers: readonly number[
   // certain specified ranges.
   checkDigit = Math.abs(checkDigit);
   if (
-    checkDigit === Number(vat.slice(7, 9)) &&
+    checkDigit === digits(vat, 7, 9) &&
     no < 9990001 &&
     (no < 100000 || no > 999999) &&
     (no < 9490001 || no > 9700000)
@@ -73,6 +74,6 @@ function isStandardOrCommercialNumber(vat: string, multipliers: readonly number[
     checkDigit = checkDigit + 42;
   }
 
-  const expect = Number(vat.slice(7, 9));
+  const expect = digits(vat, 7, 9);
   return Boolean(checkDigit === expect && no > 1000000);
 }

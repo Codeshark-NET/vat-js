@@ -88,4 +88,13 @@ describe("all countries at once", () => {
       }
     }
   });
+
+  it("checks against every country when no list is given", () => {
+    expect(checkVAT("BE0411905847")).toEqual(checkVAT("BE0411905847", countries));
+    expect(checkVAT("DE136695976").country?.name).toBe("Germany");
+  });
+
+  it("an empty list matches nothing", () => {
+    expect(checkVAT("BE0411905847", []).isSupportedCountry).toBe(false);
+  });
 });

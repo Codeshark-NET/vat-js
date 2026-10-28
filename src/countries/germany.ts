@@ -1,4 +1,5 @@
 import type { Country } from "../core.ts";
+import { digit } from "../digits.ts";
 
 export const germany: Country = {
   name: "Germany",
@@ -11,7 +12,7 @@ export const germany: Country = {
 
     for (let i = 0; i < 8; i++) {
       // Extract the next digit and implement peculiar algorithm!.
-      sum = (Number(vat.charAt(i)) + product) % 10;
+      sum = (digit(vat, i) + product) % 10;
       if (sum === 0) {
         sum = 10;
       }
@@ -27,7 +28,7 @@ export const germany: Country = {
 
     // Compare it with the last two characters of the VAT number. If the same, then it is a valid
     // check digit.
-    const expect = Number(vat.slice(8, 9));
+    const expect = digit(vat, 8);
     return checkDigit === expect;
   },
   rules: {

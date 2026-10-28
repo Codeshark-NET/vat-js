@@ -1,4 +1,5 @@
 import type { Country } from "../core.ts";
+import { digit, digits } from "../digits.ts";
 
 export const italy: Country = {
   name: "Italy",
@@ -8,18 +9,18 @@ export const italy: Country = {
     let temp: number;
 
     // The last three digits are the issuing office, and cannot exceed more 201, unless 999 or 888
-    if (Number(vat.slice(0, 7)) === 0) {
+    if (digits(vat, 0, 7) === 0) {
       return false;
     }
 
-    temp = Number(vat.slice(7, 10));
+    temp = digits(vat, 7, 10);
     if (temp < 1 || (temp > 201 && temp !== 999 && temp !== 888)) {
       return false;
     }
 
     // Extract the next digit and multiply by the appropriate
     for (let i = 0; i < 10; i++) {
-      temp = Number(vat.charAt(i)) * italy.rules.multipliers.common[i];
+      temp = digit(vat, i) * italy.rules.multipliers.common[i];
       if (temp > 9) total += Math.floor(temp / 10) + (temp % 10);
       else total += temp;
     }
@@ -31,7 +32,7 @@ export const italy: Country = {
     }
 
     // Compare it with the last character of the VAT number. If it's the same, then it's valid.
-    const expect = Number(vat.slice(10, 11));
+    const expect = digit(vat, 10);
     return total === expect;
   },
   rules: {

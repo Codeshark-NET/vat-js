@@ -1,4 +1,5 @@
 import type { Country } from "../core.ts";
+import { digit } from "../digits.ts";
 
 export const slovenia: Country = {
   name: "Slovenia",
@@ -8,7 +9,7 @@ export const slovenia: Country = {
 
     // Extract the next digit and multiply by the counter.
     for (let i = 0; i < 7; i++) {
-      total += Number(vat.charAt(i)) * slovenia.rules.multipliers.common[i];
+      total += digit(vat, i) * slovenia.rules.multipliers.common[i];
     }
 
     // Establish check digits using modulus 11
@@ -19,7 +20,7 @@ export const slovenia: Country = {
 
     // Compare the number with the last character of the VAT number. If it is the
     // same, then it's a valid check digit.
-    const expect = Number(vat.slice(7, 8));
+    const expect = digit(vat, 7);
     return !!(total !== 11 && total === expect);
   },
   rules: {

@@ -1,4 +1,5 @@
 import type { Country } from "../core.ts";
+import { digit, digits } from "../digits.ts";
 
 export const bulgaria: Country = {
   name: "Bulgaria",
@@ -26,7 +27,7 @@ export const bulgaria: Country = {
 function _increase(value: number, vat: string, from: number, to: number, incr: number): number {
   let result = value;
   for (let i = from; i < to; i++) {
-    result += Number(vat.charAt(i)) * (i + incr);
+    result += digit(vat, i) * (i + incr);
   }
   return result;
 }
@@ -40,7 +41,7 @@ function _increase2(
 ): number {
   let result = value;
   for (let i = from; i < to; i++) {
-    result += Number(vat.charAt(i)) * multipliers[i];
+    result += digit(vat, i) * multipliers[i];
   }
   return result;
 }
@@ -48,7 +49,7 @@ function _increase2(
 function _checkNineLengthVat(vat: string): boolean {
   let total: number;
   let temp = _increase(0, vat, 0, 8, 1);
-  const expect = Number(vat.slice(8));
+  const expect = digits(vat, 8);
 
   total = temp % 11;
   if (total !== 10) return total === expect;
@@ -65,14 +66,14 @@ function _isPhysicalPerson(vat: string, physicalMultipliers: readonly number[]):
   // 10 digit VAT code - see if it relates to a standard physical person
   if (/^\d\d[0-5]\d[0-3]\d\d{4}$/.test(vat)) {
     // Check month
-    const month = Number(vat.slice(2, 4));
+    const month = digits(vat, 2, 4);
     if ((month > 0 && month < 13) || (month > 20 && month < 33) || (month > 40 && month < 53)) {
       let total = _increase2(0, vat, 0, 9, physicalMultipliers);
       // Establish check digit.
       total = total % 11;
       if (total === 10) total = 0;
       // Check to see if the check digit given is correct, If not, try next type of person
-      if (total === Number(vat.substr(9, 1))) return true;
+      if (total === digit(vat, 9)) return true;
     }
   }
 
@@ -87,7 +88,7 @@ function _isForeigner(
   const total = _increase2(0, vat, 0, 9, multipliers.foreigner);
 
   // Check to see if the check digit given is correct, If not, try next type of person
-  return total % 10 === Number(vat.substr(9, 1));
+  return total % 10 === digit(vat, 9);
 }
 
 function _miscellaneousVAT(
@@ -103,6 +104,6 @@ function _miscellaneousVAT(
   if (total === 11) total = 0;
 
   // Check to see if the check digit given is correct, If not, we have an error with the VAT number
-  const expect = Number(vat.substr(9, 1));
+  const expect = digit(vat, 9);
   return total === expect;
 }

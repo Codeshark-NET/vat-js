@@ -1,4 +1,5 @@
 import type { Country } from "../core.ts";
+import { digit } from "../digits.ts";
 
 export const austria: Country = {
   name: "Austria",
@@ -7,7 +8,7 @@ export const austria: Country = {
     let total = 0;
 
     for (let i = 0; i < 7; i++) {
-      const temp = Number(vat.charAt(i)) * austria.rules.multipliers.common[i];
+      const temp = digit(vat, i) * austria.rules.multipliers.common[i];
 
       if (temp > 9) {
         total += Math.floor(temp / 10) + (temp % 10);
@@ -19,7 +20,7 @@ export const austria: Country = {
     total = 10 - ((total + 4) % 10);
     if (total === 10) total = 0;
 
-    return total === Number(vat.slice(7, 8));
+    return total === digit(vat, 7);
   },
   rules: {
     multipliers: {

@@ -1,4 +1,5 @@
 import type { Country, Rules } from "../core.ts";
+import { digit } from "../digits.ts";
 
 export const lithuania: Country = {
   name: "Lithuania",
@@ -18,7 +19,7 @@ export const lithuania: Country = {
 };
 
 function _extractDigit(vat: string, multiplierList: readonly number[], key: number): number {
-  return Number(vat.charAt(key)) * multiplierList[key];
+  return digit(vat, key) * multiplierList[key];
 }
 
 function _doubleCheckCalculation(vat: string, total: number, rules: Rules): number {
@@ -36,7 +37,7 @@ function _doubleCheckCalculation(vat: string, total: number, rules: Rules): numb
 function extractDigit(vat: string, total: number): number {
   let result = total;
   for (let i = 0; i < 8; i++) {
-    result += Number(vat.charAt(i)) * (i + 1);
+    result += digit(vat, i) * (i + 1);
   }
   return result;
 }
@@ -67,7 +68,7 @@ function _check9DigitVat(vat: string, rules: Rules): boolean {
     total = checkDigit(total);
 
     // Compare it with the last character of the VAT number. If it's the same, then it's valid.
-    const expect = Number(vat.slice(8, 9));
+    const expect = digit(vat, 8);
     return total === expect;
   }
   return false;
@@ -112,7 +113,7 @@ function _check12DigitVat(vat: string, rules: Rules): boolean {
     total = checkDigit(total);
 
     // Compare it with the last character of the VAT number. If it's the same, then it's valid.
-    const expect = Number(vat.slice(11, 12));
+    const expect = digit(vat, 11);
     return total === expect;
   }
 

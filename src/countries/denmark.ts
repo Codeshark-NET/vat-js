@@ -1,4 +1,5 @@
 import type { Country } from "../core.ts";
+import { digit } from "../digits.ts";
 
 export const denmark: Country = {
   name: "Denmark",
@@ -7,7 +8,7 @@ export const denmark: Country = {
     let total = 0;
 
     for (let i = 0; i < 8; i++) {
-      total += Number(vat.charAt(i)) * denmark.rules.multipliers.common[i];
+      total += digit(vat, i) * denmark.rules.multipliers.common[i];
     }
 
     return total % 11 === 0;

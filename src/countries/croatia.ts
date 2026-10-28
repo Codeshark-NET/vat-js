@@ -1,4 +1,5 @@
 import type { Country } from "../core.ts";
+import { digit } from "../digits.ts";
 
 export const croatia: Country = {
   name: "Croatia",
@@ -10,7 +11,7 @@ export const croatia: Country = {
 
     for (let i = 0; i < 10; i++) {
       // Extract the next digit and implement the algorithm
-      sum = (Number(vat.charAt(i)) + product) % 10;
+      sum = (digit(vat, i) + product) % 10;
       if (sum === 0) {
         sum = 10;
       }
@@ -19,7 +20,7 @@ export const croatia: Country = {
     }
 
     // Now check that we have the right check digit
-    const expect = Number(vat.slice(10, 11));
+    const expect = digit(vat, 10);
     return (product + expect) % 10 === 1;
   },
   rules: {

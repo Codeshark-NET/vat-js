@@ -1,3 +1,4 @@
+import { countries } from "./countries/all.ts";
 import { brazil } from "./countries/index.ts";
 
 export interface Multipliers {
@@ -31,11 +32,16 @@ export interface VatCheckResult {
   };
 }
 
-function makeResult(vat: string, isValid?: boolean, country?: Country): VatCheckResult {
+function makeResult(
+  vat: string,
+  isValid: boolean,
+  isValidFormat: boolean,
+  country?: Country
+): VatCheckResult {
   return {
     value: vat || undefined,
-    isValid: Boolean(isValid),
-    isValidFormat: country ? isVatValidToRegexp(vat, country.rules.regex).isValid : false,
+    isValid,
+    isValidFormat,
     isSupportedCountry: Boolean(country),
     country: !country
       ? undefined
@@ -50,11 +56,13 @@ function makeResult(vat: string, isValid?: boolean, country?: Country): VatCheck
   };
 }
 
+const SEPARATOR = /[\s./-]/;
+const SEPARATORS = /[\s./-]+/g;
+
 function removeExtraChars(vat = ""): string {
-  return vat
-    .toString()
-    .toUpperCase()
-    .replace(/(\s|-|\.|\/)+/g, "");
+  const upper = String(vat).toUpperCase();
+  // Most input is already compact; skip the replace when there is nothing to strip.
+  return SEPARATOR.test(upper) ? upper.replace(SEPARATORS, "") : upper;
 }
 
 const countriesVATDoesNotStartWithCountryCode: readonly string[] = [brazil.name];
@@ -101,30 +109,29 @@ function getCountry(vat: string, countriesList: readonly Country[]): Country | u
   return undefined;
 }
 
-function isVatValidToRegexp(
-  vat: string,
-  regexArr: readonly RegExp[]
-): { isValid: boolean; regex?: RegExp } {
-  for (const regex of regexArr) {
-    const isValid = regex.test(vat);
-    if (isValid) return { isValid: true, regex: regex };
+/** The first of the country's format regexes that matches, or null. */
+function matchFormat(vat: string, regexes: readonly RegExp[]): RegExpExecArray | null {
+  for (const regex of regexes) {
+    const match = regex.exec(vat);
+    if (match) return match;
   }
-
-  return { isValid: false, regex: undefined };
+  return null;
 }
 
-function isVatValid(vat: string, country: Country): boolean {
-  const regexpValidRes = isVatValidToRegexp(vat, country.rules.regex);
-  if (!regexpValidRes.isValid || !regexpValidRes.regex) return false;
-  const regexResult = regexpValidRes.regex.exec(vat);
-  if (!regexResult) return false;
-  return country.calcFn(regexResult[2]);
-}
-
-export function checkVAT(vat: string, countriesList: readonly Country[] = []): VatCheckResult {
-  if (!vat) return makeResult(vat, false);
+/**
+ * Check a VAT number. `countriesList` limits which countries it may match; by default, all of
+ * them.
+ */
+export function checkVAT(
+  vat: string,
+  countriesList: readonly Country[] = countries
+): VatCheckResult {
+  if (!vat) return makeResult(vat, false, false);
   const cleanVAT = removeExtraChars(vat);
   const country = getCountry(cleanVAT, countriesList);
-  const isValid = country ? isVatValid(cleanVAT, country) : false;
-  return makeResult(cleanVAT, isValid, country);
+  if (!country) return makeResult(cleanVAT, false, false);
+  // Group 2 of every format regex is the number without its country prefix.
+  const match = matchFormat(cleanVAT, country.rules.regex);
+  const isValid = match ? country.calcFn(match[2]) : false;
+  return makeResult(cleanVAT, isValid, match !== null, country);
 }

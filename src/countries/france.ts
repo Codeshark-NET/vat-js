@@ -1,4 +1,5 @@
 import type { Country } from "../core.ts";
+import { digits } from "../digits.ts";
 
 export const france: Country = {
   name: "France",
@@ -10,13 +11,13 @@ export const france: Country = {
     if (!/^\d{11}$/.test(vat)) return true;
 
     // Extract the last nine digits as an integer.
-    total = Number(vat.substring(2));
+    total = digits(vat, 2);
 
     // Establish check digit.
     total = (total * 100 + 12) % 97;
 
     // Compare it with the last character of the VAT number. If it's the same, then it's valid.
-    const expect = Number(vat.slice(0, 2));
+    const expect = digits(vat, 0, 2);
     return total === expect;
   },
   rules: {

@@ -1,4 +1,5 @@
 import type { Country } from "../core.ts";
+import { digit } from "../digits.ts";
 
 export const ireland: Country = {
   name: "Ireland",
@@ -16,7 +17,7 @@ export const ireland: Country = {
 
     // Extract the next digit and multiply by the counter.
     for (let i = 0; i < 7; i++) {
-      total += Number(newVat.charAt(i)) * multipliers.common[i];
+      total += digit(newVat, i) * multipliers.common[i];
     }
 
     // If the number is type 3 then we need to include the trailing A or H in the calculation

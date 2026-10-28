@@ -1,4 +1,5 @@
 import type { Country } from "../core.ts";
+import { digit, digits } from "../digits.ts";
 
 export const spain: Country = {
   name: "Spain",
@@ -48,7 +49,7 @@ function extractDigitAndMultiplyByCounter(
   let temp: number;
   let result = total;
   for (let i = 0; i < 7; i++) {
-    temp = Number(vat.charAt(i + 1)) * multipliers[i];
+    temp = digit(vat, i + 1) * multipliers[i];
     if (temp > 9) {
       result += Math.floor(temp / 10) + (temp % 10);
     } else {
@@ -67,7 +68,7 @@ function isNationalJuridicalEntities(vat: string, multipliers: readonly number[]
   }
 
   // Compare it with the last character of the VAT number. If it's the same, then it's valid.
-  const expect = Number(vat.slice(8, 9));
+  const expect = digit(vat, 8);
   return total === expect;
 }
 
@@ -92,6 +93,6 @@ function isPersonalYtoZ(vat: string): boolean {
 }
 
 function isPersonalKtoX(vat: string): boolean {
-  const expect = "TRWAGMYFPDXBNJZSQVHLCKE".charAt(Number(vat.substring(1, 8)) % 23);
+  const expect = "TRWAGMYFPDXBNJZSQVHLCKE".charAt(digits(vat, 1, 8) % 23);
   return vat.charAt(8) === expect;
 }

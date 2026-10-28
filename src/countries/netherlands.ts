@@ -1,4 +1,5 @@
 import type { Country } from "../core.ts";
+import { digit } from "../digits.ts";
 
 export const netherlands: Country = {
   name: "Netherlands",
@@ -19,7 +20,7 @@ export const netherlands: Country = {
     let total = 0;
     // Extract the next digit and multiply by the counter.
     for (let i = 0; i < 8; i++) {
-      total += Number(numb.charAt(i)) * multipliers.common[i];
+      total += digit(numb, i) * multipliers.common[i];
     }
 
     // Establish check digits by getting modulus 11.
@@ -29,7 +30,7 @@ export const netherlands: Country = {
     }
 
     // Compare it with the last character of the VAT number. If it's the same, then it's valid.
-    const expect = Number(numb.slice(8, 9));
+    const expect = digit(numb, 8);
 
     // is either 11 proof or 97 mod proof.
     return total === expect || isNinetySevenMod(characterValues.join(""));

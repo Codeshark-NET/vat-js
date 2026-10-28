@@ -5,9 +5,9 @@ dependencies, no HTTP calls. Derived from [jsvat](https://github.com/se-panfilov
 archived 2026-03), starting from its 2.5.4 source and test lists.
 
 ```ts
-import { checkVAT, countries, belgium } from "tsvat";
+import { checkVAT, belgium } from "tsvat";
 
-checkVAT("BE0411905847", countries); // { isValid: true, value: "BE0411905847", country: {...}, ... }
+checkVAT("BE0411905847"); // { isValid: true, value: "BE0411905847", country: {...}, ... }
 checkVAT("BE0411905847", [belgium]); // limit to specific countries
 ```
 
