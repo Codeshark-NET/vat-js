@@ -1,9 +1,9 @@
 {
   "compilerOptions": {
-    "target": "es2020",
+    "target": "es2022",
     "lib": ["es2022"],
-    "module": "esnext",
-    "moduleResolution": "bundler",
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
     "types": ["node"],
     "strict": true,
     "noEmit": true,
@@ -11,11 +11,11 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "allowImportingTsExtensions": true,
+    "rewriteRelativeImportExtensions": true,
     "verbatimModuleSyntax": true,
+    "erasableSyntaxOnly": true,
     "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "isolatedDeclarations": true,
-    "declaration": true
+    "noUnusedParameters": true
   },
-  "include": ["src/**/*.ts", "test/**/*.ts", "bench/**/*.ts"]
+  "include": ["src/**/*.ts", "test/**/*.ts", "bench/**/*.ts", "vitest.config.ts"]
 }

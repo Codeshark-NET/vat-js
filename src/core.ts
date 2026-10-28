@@ -57,12 +57,6 @@ function removeExtraChars(vat = ""): string {
     .replace(/(\s|-|\.|\/)+/g, "");
 }
 
-function getCountryCodes(country: Country): readonly string[] {
-  return [...country.codes, country.name === "Greece" ? "EL" : undefined].filter(
-    Boolean
-  ) as readonly string[];
-}
-
 const countriesVATDoesNotStartWithCountryCode: readonly string[] = [brazil.name];
 
 function isVATStartWithCountryCode(countryName: string): boolean {
@@ -70,24 +64,41 @@ function isVATStartWithCountryCode(countryName: string): boolean {
 }
 
 function isVATStartWithNumber(vat: string): boolean {
-  return !!vat.match(/^\d{2}/);
+  return /^\d{2}/.test(vat);
+}
+
+/** The 2-letter prefixes a country's VATs start with: its alpha-2 code, plus EL for Greece. */
+function prefixesOf(country: Country): readonly string[] {
+  return country.name === "Greece" ? [country.codes[0], "EL"] : [country.codes[0]];
+}
+
+// Prefix -> country, built once per countries list. Callers usually pass the same array on
+// every call, so this is a lookup after the first. A list mutated after its first use keeps
+// its old map.
+const prefixMaps = new WeakMap<readonly Country[], ReadonlyMap<string, Country>>();
+
+function prefixMapFor(countriesList: readonly Country[]): ReadonlyMap<string, Country> {
+  let map = prefixMaps.get(countriesList);
+  if (!map) {
+    const built = new Map<string, Country>();
+    for (const country of countriesList) {
+      for (const prefix of prefixesOf(country)) {
+        if (!built.has(prefix)) built.set(prefix, country);
+      }
+    }
+    prefixMaps.set(countriesList, built);
+    map = built;
+  }
+  return map;
 }
 
 function getCountry(vat: string, countriesList: readonly Country[]): Country | undefined {
-  for (const country of countriesList) {
-    if (
-      startsWithCode(vat, country) ||
-      (!isVATStartWithCountryCode(country.name) && isVATStartWithNumber(vat))
-    ) {
-      return { ...country };
-    }
+  const byPrefix = prefixMapFor(countriesList).get(vat.slice(0, 2));
+  if (byPrefix) return byPrefix;
+  if (isVATStartWithNumber(vat)) {
+    return countriesList.find((country) => !isVATStartWithCountryCode(country.name));
   }
   return undefined;
-}
-
-function startsWithCode(vat: string, country: Country): boolean {
-  const countryCodes = getCountryCodes(country);
-  return countryCodes.filter((code) => vat.startsWith(code)).length > 0;
 }
 
 function isVatValidToRegexp(

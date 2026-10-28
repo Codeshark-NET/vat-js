@@ -15,8 +15,11 @@ checkVAT("BE0411905847", [belgium]); // limit to specific countries
 
 - `pnpm test`: Vitest over `test-vectors/*.json`
 - `pnpm typecheck`: `tsc`, no emit
-- `pnpm build`: `tsdown` → `dist/` (ESM + CJS + `.d.ts`)
+- `pnpm build`: `tsc -p tsconfig.build.json` → `dist/` (per-file ESM + `.d.ts`)
+- `pnpm lint` / `pnpm lint:fix`: Biome (also runs on staged files via husky + lint-staged)
 - `pnpm bench`: rough calls/second
+
+ESM only. CommonJS consumers on Node 20.19+ can `require("tsvat")` directly.
 
 ## Test vectors
 
@@ -26,8 +29,6 @@ other languages can run the same vectors.
 
 ## Known issues inherited from jsvat
 
-- Numeric ISO codes are matched as VAT prefixes, so a Brazilian CNPJ starting `020` resolves
-  to Andorra.
 - `europe` has no checksum; anything matching `EU\d{9}` is valid.
-- Open jsvat issues (BE numbers starting with 1, French keys with letters, Poland mod-11 = 10,
-  `XI` prefix for Northern Ireland, Norway) are not addressed yet.
+- Open jsvat issues (BE numbers starting with 1, French keys with letters, `XI` prefix for
+  Northern Ireland, Norway) are not addressed yet.

@@ -5,13 +5,13 @@ export const ireland: Country = {
   codes: ["IE", "IRL", "372"],
   calcFn: (vat: string): boolean => {
     const { typeFormats, multipliers } = ireland.rules;
-    if (!typeFormats || !typeFormats.first) return false;
+    if (!typeFormats?.first) return false;
     let total: string | number = 0;
 
     let newVat = vat;
     // If the code is type 1 format, we need to convert it to the new before performing the validation.
     if (typeFormats.first.test(vat)) {
-      newVat = "0" + vat.substring(2, 7) + vat.substring(0, 1) + vat.substring(7, 8);
+      newVat = `0${vat.substring(2, 7)}${vat.substring(0, 1)}${vat.substring(7, 8)}`;
     }
 
     // Extract the next digit and multiply by the counter.

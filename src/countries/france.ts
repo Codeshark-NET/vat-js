@@ -4,7 +4,7 @@ export const france: Country = {
   name: "France",
   codes: ["FR", "FRA", "250"],
   calcFn: (vat: string): boolean => {
-    let total;
+    let total: number;
 
     // Checks the check digits of a French VAT number.
     if (!/^\d{11}$/.test(vat)) return true;

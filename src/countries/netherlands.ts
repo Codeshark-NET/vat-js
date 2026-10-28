@@ -10,7 +10,7 @@ export const netherlands: Country = {
     if (!additional) return false;
 
     const match = vat.match(additional[0]);
-    if (!match || !match[1]) return false;
+    if (!match?.[1]) return false;
 
     const numb = match[1];
 

@@ -5,7 +5,7 @@ export const italy: Country = {
   codes: ["IT", "ITA", "380"],
   calcFn: (vat: string): boolean => {
     let total = 0;
-    let temp;
+    let temp: number;
 
     // The last three digits are the issuing office, and cannot exceed more 201, unless 999 or 888
     if (Number(vat.slice(0, 7)) === 0) {

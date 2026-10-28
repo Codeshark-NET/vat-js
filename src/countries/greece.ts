@@ -7,7 +7,7 @@ export const greece: Country = {
     let total = 0;
 
     // eight character numbers should be prefixed with an 0.
-    const newVat = vat.length === 8 ? "0" + vat : vat;
+    const newVat = vat.length === 8 ? `0${vat}` : vat;
 
     // Extract the next digit and multiply by the counter.
     for (let i = 0; i < 8; i++) {

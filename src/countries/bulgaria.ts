@@ -46,7 +46,7 @@ function _increase2(
 }
 
 function _checkNineLengthVat(vat: string): boolean {
-  let total;
+  let total: number;
   let temp = _increase(0, vat, 0, 8, 1);
   const expect = Number(vat.slice(8));
 

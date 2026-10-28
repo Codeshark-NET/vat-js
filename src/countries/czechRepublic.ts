@@ -78,7 +78,7 @@ function isIndividualType2(
     }
 
     // Establish check digit.
-    let a;
+    let a: number;
 
     if (total % 11 === 0) {
       a = total + 11;

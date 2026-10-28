@@ -76,9 +76,9 @@ describe.each(files)("%s", (file) => {
 });
 
 describe("all countries at once", () => {
-  // Known jsvat bug: getCountry matches numeric ISO codes as prefixes, so a Brazilian CNPJ
-  // starting "020" resolves to Andorra (numeric code 020). Flip to `it` once fixed.
-  it.fails("resolves each valid VAT to its own country", () => {
+  // Regression: jsvat matched numeric ISO codes as prefixes, so a Brazilian CNPJ starting
+  // "020" resolved to Andorra (numeric code 020).
+  it("resolves each valid VAT to its own country", () => {
     for (const file of files) {
       const vectors: Vectors = JSON.parse(readFileSync(join(dir, file), "utf8"));
       for (const vat of vectors.valid) {
