@@ -1,6 +1,6 @@
 {
   "name": "@codeshark/vat",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Offline VAT number validation (format + checksum) for EU and selected other countries",
   "license": "MIT",
   "repository": {

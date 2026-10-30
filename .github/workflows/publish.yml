@@ -1,23 +1,23 @@
 name: Publish to npm
 
-# Uses npm trusted publishing (OIDC) - no NPM_TOKEN secret needed. The trusted
-# publisher must be registered on the npmjs.com package settings, pointing at this
-# exact repo + workflow file before this can succeed.
+# Run with: gh workflow run publish.yml --ref main
+# Uses npm trusted publishing, configured on npmjs.com for this repo and file.
 on:
-  push:
-    tags:
-      - "v*"
-  # Manual runs publish whatever version the selected ref has in package.json;
-  # npm rejects a version that is already published, so a stale ref fails loudly.
   workflow_dispatch:
 
-permissions:
-  contents: read
-  id-token: write
+permissions: {}
+
+concurrency:
+  group: publish
+  cancel-in-progress: false
 
 jobs:
-  publish:
+  verify:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      tag: ${{ steps.package.outputs.tag }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -28,16 +28,65 @@ jobs:
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: "26"
-          registry-url: "https://registry.npmjs.org"
           package-manager-cache: false
 
-      # Trusted publishing needs npm >= 11.5.1. Pinned rather than @latest so an
-      # untested npm release cannot silently change publish behaviour.
-      - run: npm install -g npm@12.0.2
+      - name: Read version
+        id: package
+        run: echo "tag=v$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
+
+      - name: Check branch and tag
+        env:
+          TAG: ${{ steps.package.outputs.tag }}
+        run: |
+          if [ "$GITHUB_REF" != "refs/heads/main" ]; then
+            echo "::error::Must run on main, not $GITHUB_REF"
+            exit 1
+          fi
+          if git ls-remote --exit-code --tags origin "refs/tags/$TAG" > /dev/null; then
+            echo "::error::Tag $TAG already exists"
+            exit 1
+          fi
 
       - run: pnpm install --frozen-lockfile
       - run: pnpm lint
       - run: pnpm typecheck
       - run: pnpm test
-      # prepack runs the build.
-      - run: npm publish
+      - run: npm pack --pack-destination pack
+
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: package
+          path: pack/*.tgz
+          if-no-files-found: error
+          retention-days: 1
+
+  # Holds the OIDC token, so it doesn't check out or install the project.
+  publish:
+    needs: verify
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: "26"
+          registry-url: "https://registry.npmjs.org"
+          package-manager-cache: false
+
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: package
+          path: pack
+
+      - run: npm publish ./pack/*.tgz
+
+  release:
+    needs: [verify, publish]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ needs.verify.outputs.tag }}
+        run: gh release create "$TAG" --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --generate-notes

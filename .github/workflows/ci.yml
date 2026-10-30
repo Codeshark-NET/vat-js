@@ -13,8 +13,6 @@ jobs:
   test:
     runs-on: ubuntu-latest
     strategy:
-      # Report every Node version's result; one failure shouldn't cancel the others and
-      # hide whether the problem is version-specific.
       fail-fast: false
       matrix:
         # Vitest needs 22.12+, so the 20.19 engines floor can't run this suite.
