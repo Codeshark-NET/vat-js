@@ -51,12 +51,12 @@ jobs:
       - run: pnpm lint
       - run: pnpm typecheck
       - run: pnpm test
-      - run: npm pack --pack-destination pack
+      - run: npm pack
 
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: package
-          path: pack/*.tgz
+          path: "*.tgz"
           if-no-files-found: error
           retention-days: 1
 
