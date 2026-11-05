@@ -11,7 +11,7 @@ export const belgium: Country = {
     const check = 97 - (digits(newVat, 0, 8) % 97);
     return check === digits(newVat, 8, 10);
   },
-  canonicalize: (match) => `BE${match[2].padStart(10, "0")}`,
+  canonicalize: (match) => (match[2].length === 10 ? match.input : `BE0${match[2]}`),
   rules: {
     multipliers: {},
     // First digit 0 or 1; the 1 series has been issued since 2023. The old 9 digit form means 0.

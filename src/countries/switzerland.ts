@@ -20,7 +20,7 @@ export const switzerland: Country = {
     const expect = digit(vat, 8);
     return total === expect;
   },
-  canonicalize: (match) => `CHE${match[2]}MWST`,
+  canonicalize: (match) => (match[3] === "MWST" ? match.input : `CHE${match[2]}MWST`),
   rules: {
     multipliers: {
       common: [5, 4, 3, 2, 7, 6, 5, 4]

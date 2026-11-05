@@ -131,11 +131,14 @@ function matchFormat(vat: string, regexes: readonly RegExp[]): RegExpExecArray |
   return null;
 }
 
-function checkAgainst(cleanVAT: string, country: Country): VatCheckResult {
-  // Group 2 of every format regex is the number without its country prefix.
-  const match = matchFormat(cleanVAT, country.rules.regex);
-  if (!match) return makeResult(cleanVAT, false, false, country);
+function resultFor(
+  cleanVAT: string,
+  country: Country | undefined,
+  match: RegExpExecArray | null
+): VatCheckResult {
+  if (!country || !match) return makeResult(cleanVAT, false, false, country);
   const value = country.canonicalize ? country.canonicalize(match) : cleanVAT;
+  // Group 2 of every format regex is the number without its country prefix.
   return makeResult(value, country.calcFn(match[2]), true, country);
 }
 
@@ -155,11 +158,11 @@ export function checkVAT(
   if (!vat) return makeResult(vat, false, false);
   const cleanVAT = removeExtraChars(vat);
   const country = getCountry(cleanVAT, countriesList);
-  const result = country ? checkAgainst(cleanVAT, country) : makeResult(cleanVAT, false, false);
-  if (result.isValidFormat || !assumed) return result;
+  const match = country ? matchFormat(cleanVAT, country.rules.regex) : null;
+  if (match || !assumed) return resultFor(cleanVAT, country, match);
   for (const prefix of prefixesOf(assumed)) {
-    const candidate = checkAgainst(prefix + cleanVAT, assumed);
-    if (candidate.isValidFormat) return candidate;
+    const candidate = matchFormat(prefix + cleanVAT, assumed.rules.regex);
+    if (candidate) return resultFor(candidate.input, assumed, candidate);
   }
-  return result;
+  return resultFor(cleanVAT, country, null);
 }

@@ -28,7 +28,7 @@ export const norway: Country = {
 
     return false;
   },
-  canonicalize: (match) => `NO${match[2]}MVA`,
+  canonicalize: (match) => (match[3] ? match.input : `${match.input}MVA`),
   rules: {
     multipliers: {
       common: [3, 2, 7, 6, 5, 4, 3, 2]
