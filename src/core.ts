@@ -84,7 +84,9 @@ function isVATStartWithCountryCode(countryName: string): boolean {
 }
 
 function isVATStartWithNumber(vat: string): boolean {
-  return /^\d{2}/.test(vat);
+  const a = vat.charCodeAt(0) - 48;
+  const b = vat.charCodeAt(1) - 48;
+  return a >= 0 && a <= 9 && b >= 0 && b <= 9;
 }
 
 /** The prefixes a country's VATs start with: its alpha-2 code, plus any others it declares. */
@@ -95,15 +97,20 @@ function prefixesOf(country: Country): readonly string[] {
 // Prefix -> country, built once per countries list. Callers usually pass the same array on
 // every call, so this is a lookup after the first. A list mutated after its first use keeps
 // its old map.
-const prefixMaps = new WeakMap<readonly Country[], ReadonlyMap<string, Country>>();
+const prefixMaps = new WeakMap<readonly Country[], ReadonlyMap<number, Country>>();
 
-function prefixMapFor(countriesList: readonly Country[]): ReadonlyMap<string, Country> {
+/** The first two characters as one number: no substring to allocate or hash on each call. */
+function prefixKey(s: string): number {
+  return (s.charCodeAt(0) << 16) | s.charCodeAt(1);
+}
+
+function prefixMapFor(countriesList: readonly Country[]): ReadonlyMap<number, Country> {
   let map = prefixMaps.get(countriesList);
   if (!map) {
-    const built = new Map<string, Country>();
+    const built = new Map<number, Country>();
     for (const country of countriesList) {
       for (const prefix of prefixesOf(country)) {
-        const key = prefix.slice(0, 2);
+        const key = prefixKey(prefix);
         if (!built.has(key)) built.set(key, country);
       }
     }
@@ -114,7 +121,7 @@ function prefixMapFor(countriesList: readonly Country[]): ReadonlyMap<string, Co
 }
 
 function getCountry(vat: string, countriesList: readonly Country[]): Country | undefined {
-  const byPrefix = prefixMapFor(countriesList).get(vat.slice(0, 2));
+  const byPrefix = prefixMapFor(countriesList).get(prefixKey(vat));
   if (byPrefix) return byPrefix;
   if (isVATStartWithNumber(vat)) {
     return countriesList.find((country) => !isVATStartWithCountryCode(country.name));
