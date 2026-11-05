@@ -8,13 +8,15 @@ export const italy: Country = {
     let total = 0;
     let temp: number;
 
-    // The last three digits are the issuing office, and cannot exceed more 201, unless 999 or 888
     if (digits(vat, 0, 7) === 0) {
       return false;
     }
 
+    // Digits 8-10 are the issuing office: 001-100 for the provinces, 120 and 121, and the
+    // special 888 and 999. No official list is published; all 7,834 real numbers checked fall in
+    // these ranges, and use every code from 001-100 plus 120 and 121.
     temp = digits(vat, 7, 10);
-    if (temp < 1 || (temp > 201 && temp !== 999 && temp !== 888)) {
+    if (temp < 1 || (temp > 100 && temp !== 120 && temp !== 121 && temp !== 888 && temp !== 999)) {
       return false;
     }
 

@@ -5,7 +5,7 @@ export const netherlands: Country = {
   name: "Netherlands",
   codes: ["NL", "NLD", "528"],
   calcFn: (input: string): boolean => {
-    const vat = input.replace(/[ \-_]/g, "").toUpperCase();
+    const vat = input.padStart(12, "0");
 
     const { additional, multipliers } = netherlands.rules;
     if (!additional) return false;
@@ -35,11 +35,14 @@ export const netherlands: Country = {
     // is either 11 proof or 97 mod proof.
     return total === expect || isNinetySevenMod(characterValues.join(""));
   },
+  canonicalize: (match) =>
+    match[2].length === 12 ? match.input : `NL${match[2].padStart(12, "0")}`,
   rules: {
     multipliers: {
       common: [9, 8, 7, 6, 5, 4, 3, 2]
     },
-    regex: [/^(NL)(\d{9}B\d{2})$/],
+    // Short forms drop leading zeros: VIES has NL004495445B01 as valid, for NL4495445B01.
+    regex: [/^(NL)(\d{7,9}B\d{2})$/],
     additional: [/^(\d{9})B\d{2}$/]
   }
 };

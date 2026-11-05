@@ -24,10 +24,12 @@ export const greece: Country = {
     const expect = digit(newVat, 8);
     return total === expect;
   },
+  canonicalize: (match) => (match[2].length === 9 ? match.input : `EL0${match[2]}`),
   rules: {
     multipliers: {
       common: [256, 128, 64, 32, 16, 8, 4, 2]
     },
-    regex: [/^(EL)(\d{9})$/]
+    // 8 digits is the 9 digit form without its leading zero: VIES has EL094051189 as valid.
+    regex: [/^(EL)(\d{8,9})$/]
   }
 };

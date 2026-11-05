@@ -22,7 +22,11 @@ describe("canonical value", () => {
     ["CHE272990183", "CHE272990183MWST"],
     ["CHE-272.990.183 TVA", "CHE272990183MWST"],
     ["CHE272990183IVA", "CHE272990183MWST"],
-    ["CHE272990183MWST", "CHE272990183MWST"]
+    ["CHE272990183MWST", "CHE272990183MWST"],
+    ["EL94051189", "EL094051189"],
+    ["EL094051189", "EL094051189"],
+    ["NL4495445B01", "NL004495445B01"],
+    ["NL004495445B01", "NL004495445B01"]
   ])("%s -> %s", (vat, value) => {
     expect(checkVAT(vat)).toMatchObject({ isValid: true, value });
   });
