@@ -4,8 +4,8 @@ Offline VAT number validation (format + checksum) for the EU and a few other cou
 dependencies, no HTTP calls. Derived from [jsvat](https://github.com/se-panfilov/jsvat) (MIT,
 archived 2026-03), starting from its 2.5.4 source and test lists.
 
-This checks that a number is well formed. It does not check that the number is registered to a
-business; use [VIES](https://ec.europa.eu/taxation_customs/vies/) for that.
+It checks that a number is well formed, not that it's registered; use
+[VIES](https://ec.europa.eu/taxation_customs/vies/) for that.
 
 ```sh
 npm install @codeshark/vat
@@ -16,13 +16,15 @@ import { checkVAT, belgium } from "@codeshark/vat";
 
 checkVAT("BE0411905847"); // { isValid: true, value: "BE0411905847", country: {...}, ... }
 checkVAT("BE0411905847", [belgium]); // limit to specific countries
+checkVAT("0411905847", undefined, { assumeCountry: belgium }); // for numbers with no prefix
 ```
 
-The result has this shape:
+`assumeCountry` applies only when the number doesn't match a format as typed. It must be in the
+countries list, or `checkVAT` throws a `TypeError`.
 
 ```ts
 interface VatCheckResult {
-  value?: string; // uppercased, with whitespace and . / - removed
+  value?: string; // uppercased, with whitespace and . , / - removed; see below
   isValid: boolean; // format and checksum both pass
   isValidFormat: boolean;
   isSupportedCountry: boolean;
@@ -33,6 +35,14 @@ interface VatCheckResult {
 }
 ```
 
+When the format matches, `value` is the official form:
+
+| Country     | Input                                  | `value`            |
+| ----------- | -------------------------------------- | ------------------ |
+| Belgium     | `BE411905847`                          | `BE0411905847`     |
+| Norway      | `NO974760673`                          | `NO974760673MVA`   |
+| Switzerland | `CHE272990183`, `CHE272990183TVA`, ... | `CHE272990183MWST` |
+
 ESM only. CommonJS consumers on Node 20.19+ can `require("@codeshark/vat")` directly.
 
 ## Supported countries
@@ -40,41 +50,42 @@ ESM only. CommonJS consumers on Node 20.19+ can `require("@codeshark/vat")` dire
 Andorra, Austria, Belgium, Brazil, Bulgaria, Croatia, Cyprus, Czech Republic, Denmark, Estonia,
 Europe (`EU`), Finland, France, Germany, Greece, Hungary, Ireland, Italy, Latvia, Lithuania,
 Luxembourg, Malta, Netherlands, Norway, Poland, Portugal, Romania, Russia, Serbia, Slovakia,
-Slovenia, Spain, Sweden, Switzerland, United Kingdom.
+Slovenia, Spain, Sweden, Switzerland, United Kingdom (`GB`, and `XI` for Northern Ireland).
 
 ## Migrating from jsvat
 
-Change the import. The exports and result shape are the same as jsvat 2.5.4.
+Change the import; exports and result shape match jsvat 2.5.4.
 
 ```diff
 - import { checkVAT, countries } from "jsvat";
 + import { checkVAT, countries } from "@codeshark/vat";
 ```
 
-There are two differences:
+Differences:
 
 - The countries list is optional and defaults to all countries. jsvat reports every number as
   invalid without it.
 - Digit-only Brazilian numbers are no longer sent to another country. jsvat treats
   `02.061.065/0001-72` as Andorran and rejects it.
-
-All the test vectors in this repo give the same results in both packages, apart from that number.
+- Belgian numbers starting with 1, issued since 2023, are accepted (`BE1006023325`).
+- Polish numbers that can't have a valid check digit are rejected (`PL1234567890`,
+  `PL0000000000`).
+- `XI` is accepted, as the United Kingdom.
+- Andorran numbers accept any final control letter (`ADL708585T`); `F`, `A` and `L` numbers must
+  be in their official ranges (`ADA000000A` is invalid).
+- `value` is the official form for Belgium, Norway and Switzerland.
+- Commas count as separators.
 
 ## Known issues inherited from jsvat
 
 - `europe` has no checksum; anything matching `EU\d{9}` is valid.
-- Belgian numbers starting with 1, issued since 2023, are rejected (`BE1006023325`).
-- Polish numbers whose checksum remainder is 10 are accepted (`PL1234567890`).
 - French numbers with letter keys skip the checksum (`FRXX433138302`).
-- The `XI` prefix for Northern Ireland is unsupported.
-- Equivalent forms are returned as typed, not canonicalised: Belgian 9 and 10 digit numbers,
-  Norwegian numbers with and without `MVA`.
 
 ## Test vectors
 
 `test-vectors/<country>.json` holds `valid`, `validOnlyByFormat` and `invalid` lists per
-country, converted from jsvat's `test/countries_vat_lists`. They are plain JSON so ports in
-other languages can run the same vectors.
+country, converted from jsvat's `test/countries_vat_lists`. Plain JSON, so ports in other
+languages can reuse them.
 
 ## Development
 

@@ -17,8 +17,20 @@ export interface Rules {
 export interface Country {
   name: string;
   codes: readonly string[];
+  /** Prefixes its VATs can start with besides the alpha-2 code in `codes[0]`. */
+  prefixes?: readonly string[];
   calcFn: (vat: string, options?: { readonly [key: string]: unknown }) => boolean;
+  /** The official form of a number whose format matched. Without it, `value` is the input, cleaned. */
+  canonicalize?: (match: RegExpExecArray) => string;
   rules: Rules;
+}
+
+export interface CheckOptions {
+  /**
+   * Country to try when the number has no prefix of its own, as in `B12345674` for Spain. Must be
+   * in `countriesList`, or `checkVAT` throws a `TypeError`.
+   */
+  assumeCountry?: Country;
 }
 
 export interface VatCheckResult {
@@ -56,8 +68,8 @@ function makeResult(
   };
 }
 
-const SEPARATOR = /[\s./-]/;
-const SEPARATORS = /[\s./-]+/g;
+const SEPARATOR = /[\s.,/-]/;
+const SEPARATORS = /[\s.,/-]+/g;
 
 function removeExtraChars(vat = ""): string {
   const upper = String(vat).toUpperCase();
@@ -75,9 +87,9 @@ function isVATStartWithNumber(vat: string): boolean {
   return /^\d{2}/.test(vat);
 }
 
-/** The 2-letter prefixes a country's VATs start with: its alpha-2 code, plus EL for Greece. */
+/** The prefixes a country's VATs start with: its alpha-2 code, plus any others it declares. */
 function prefixesOf(country: Country): readonly string[] {
-  return country.name === "Greece" ? [country.codes[0], "EL"] : [country.codes[0]];
+  return country.prefixes ? [country.codes[0], ...country.prefixes] : [country.codes[0]];
 }
 
 // Prefix -> country, built once per countries list. Callers usually pass the same array on
@@ -91,7 +103,8 @@ function prefixMapFor(countriesList: readonly Country[]): ReadonlyMap<string, Co
     const built = new Map<string, Country>();
     for (const country of countriesList) {
       for (const prefix of prefixesOf(country)) {
-        if (!built.has(prefix)) built.set(prefix, country);
+        const key = prefix.slice(0, 2);
+        if (!built.has(key)) built.set(key, country);
       }
     }
     prefixMaps.set(countriesList, built);
@@ -118,20 +131,35 @@ function matchFormat(vat: string, regexes: readonly RegExp[]): RegExpExecArray |
   return null;
 }
 
+function checkAgainst(cleanVAT: string, country: Country): VatCheckResult {
+  // Group 2 of every format regex is the number without its country prefix.
+  const match = matchFormat(cleanVAT, country.rules.regex);
+  if (!match) return makeResult(cleanVAT, false, false, country);
+  const value = country.canonicalize ? country.canonicalize(match) : cleanVAT;
+  return makeResult(value, country.calcFn(match[2]), true, country);
+}
+
 /**
  * Check a VAT number. `countriesList` limits which countries it may match; by default, all of
- * them.
+ * them. `options.assumeCountry` applies only when the number doesn't match a format as typed.
  */
 export function checkVAT(
   vat: string,
-  countriesList: readonly Country[] = countries
+  countriesList: readonly Country[] = countries,
+  options?: CheckOptions
 ): VatCheckResult {
+  const assumed = options?.assumeCountry;
+  if (assumed && !countriesList.includes(assumed)) {
+    throw new TypeError(`assumeCountry ${assumed.name} is not in countriesList`);
+  }
   if (!vat) return makeResult(vat, false, false);
   const cleanVAT = removeExtraChars(vat);
   const country = getCountry(cleanVAT, countriesList);
-  if (!country) return makeResult(cleanVAT, false, false);
-  // Group 2 of every format regex is the number without its country prefix.
-  const match = matchFormat(cleanVAT, country.rules.regex);
-  const isValid = match ? country.calcFn(match[2]) : false;
-  return makeResult(cleanVAT, isValid, match !== null, country);
+  const result = country ? checkAgainst(cleanVAT, country) : makeResult(cleanVAT, false, false);
+  if (result.isValidFormat || !assumed) return result;
+  for (const prefix of prefixesOf(assumed)) {
+    const candidate = checkAgainst(prefix + cleanVAT, assumed);
+    if (candidate.isValidFormat) return candidate;
+  }
+  return result;
 }

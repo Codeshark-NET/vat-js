@@ -1,5 +1,5 @@
 import type { Country } from "../core.ts";
-import { digit } from "../digits.ts";
+import { digit, digits } from "../digits.ts";
 
 export const poland: Country = {
   name: "Poland",
@@ -7,16 +7,17 @@ export const poland: Country = {
   calcFn: (vat: string): boolean => {
     let total = 0;
 
+    // All zeros would pass the checksum below.
+    if (digits(vat, 0) === 0) return false;
+
     // Extract the next digit and multiply by the counter.
     for (let i = 0; i < 9; i++) {
       total += digit(vat, i) * poland.rules.multipliers.common[i];
     }
 
-    // Establish check digits subtracting modulus 11 from 11.
+    // Establish check digit. A remainder of 10 can't be written as one digit, so it's invalid.
     total = total % 11;
-    if (total > 9) {
-      total = 0;
-    }
+    if (total > 9) return false;
 
     // Compare it with the last character of the VAT number. If it's the same, then it's valid.
     const expect = digit(vat, 9);

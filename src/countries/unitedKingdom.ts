@@ -4,6 +4,8 @@ import { digit, digits } from "../digits.ts";
 export const unitedKingdom: Country = {
   name: "United Kingdom",
   codes: ["GB", "GBR", "826"],
+  // Northern Ireland, under Council Directive (EU) 2020/1756.
+  prefixes: ["XI"],
   calcFn: (vat: string): boolean => {
     // Government departments
     if (vat.startsWith("GD")) return isGovernmentDepartment(vat);
@@ -18,7 +20,7 @@ export const unitedKingdom: Country = {
     multipliers: {
       common: [8, 7, 6, 5, 4, 3, 2]
     },
-    regex: [/^(GB)?(\d{9})$/, /^(GB)?(\d{12})$/, /^(GB)?(GD\d{3})$/, /^(GB)?(HA\d{3})$/]
+    regex: [/^(GB|XI)?(\d{9})$/, /^(GB|XI)?(\d{12})$/, /^(GB|XI)?(GD\d{3})$/, /^(GB|XI)?(HA\d{3})$/]
   }
 };
 

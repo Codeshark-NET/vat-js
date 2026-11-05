@@ -4,6 +4,7 @@ import { digit } from "../digits.ts";
 export const greece: Country = {
   name: "Greece",
   codes: ["GR", "GRC", "300"],
+  prefixes: ["EL"],
   calcFn: (vat: string): boolean => {
     let total = 0;
 

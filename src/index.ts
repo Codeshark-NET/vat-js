@@ -1,4 +1,4 @@
-export type { Country, Multipliers, Rules, VatCheckResult } from "./core.ts";
+export type { CheckOptions, Country, Multipliers, Rules, VatCheckResult } from "./core.ts";
 export { checkVAT } from "./core.ts";
 export { countries } from "./countries/all.ts";
 export {

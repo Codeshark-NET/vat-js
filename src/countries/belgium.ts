@@ -6,13 +6,15 @@ export const belgium: Country = {
   codes: ["BE", "BEL", "056"],
   calcFn: (vat: string): boolean => {
     const newVat = vat.length === 9 ? `0${vat}` : vat;
-    if (digit(newVat, 1) === 0) return false;
+    if (digit(newVat, 0) === 0 && digit(newVat, 1) === 0) return false;
 
     const check = 97 - (digits(newVat, 0, 8) % 97);
     return check === digits(newVat, 8, 10);
   },
+  canonicalize: (match) => `BE${match[2].padStart(10, "0")}`,
   rules: {
     multipliers: {},
-    regex: [/^(BE)(0?\d{9})$/]
+    // First digit 0 or 1; the 1 series has been issued since 2023. The old 9 digit form means 0.
+    regex: [/^(BE)([01]?\d{9})$/]
   }
 };

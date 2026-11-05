@@ -3,10 +3,14 @@
   "codes": ["AD", "AND", "020"],
   "valid": [
     "ADF000000F",
+    "ADF123456Z",
+    "ADF699999Z",
     "ADE000000E",
-    "ADA000000A",
-    "ADL000000L",
-    "ADE000000E",
+    "ADE123456Z",
+    "ADA700000A",
+    "ADA799999Z",
+    "ADL700000L",
+    "ADL708585T",
     "ADC000000C",
     "ADD000000D",
     "ADG000000G",
@@ -14,6 +18,13 @@
     "ADP000000P",
     "ADU000000U"
   ],
-  "validOnlyByFormat": [],
+  "validOnlyByFormat": [
+    "ADF700000A",
+    "ADA000000A",
+    "ADA699999A",
+    "ADA800000A",
+    "ADL000000L",
+    "ADL800000L"
+  ],
   "invalid": ["AD00000000", "ADM000000M", "ADP000000"]
 }
